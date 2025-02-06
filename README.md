@@ -1,27 +1,97 @@
-# Deploy FastAPI on Render
+# FastAPI OCR and Receipt Extraction API
 
-Use this repo as a template to deploy a Python [FastAPI](https://fastapi.tiangolo.com) service on Render.
+This FastAPI project provides an API for uploading image files, extracting text using EasyOCR, and structuring the extracted data using OpenAI's GPT model.
 
-See https://render.com/docs/deploy-fastapi or follow the steps below:
+## Features
+- Upload an image file (e.g., a receipt)
+- Extract text using EasyOCR
+- Process extracted text with OpenAI's GPT-4 to structure receipt data
+- Returns structured receipt details including store name, date, items, subtotal, tax, total, and payment method
 
-## Manual Steps
+## Requirements
 
-1. You may use this repository directly or [create your own repository from this template](https://github.com/render-examples/fastapi/generate) if you'd like to customize the code.
-2. Create a new Web Service on Render.
-3. Specify the URL to your new repository or this repository.
-4. Render will automatically detect that you are deploying a Python service and use `pip` to download the dependencies.
-5. Specify the following as the Start Command.
+Ensure you have Python installed. The required dependencies can be installed using:
 
-    ```shell
-    uvicorn main:app --host 0.0.0.0 --port $PORT
-    ```
+```sh
+pip install fastapi uvicorn openai easyocr pydantic-settings
+```
 
-6. Click Create Web Service.
+Additionally, you need to set up an OpenAI API key.
 
-Or simply click:
+## Environment Variables
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/render-examples/fastapi)
+Set up the OpenAI API key as an environment variable:
 
-## Thanks
+```sh
+export OPENAI_API_KEY="your_openai_api_key"
+```
 
-Thanks to [Harish](https://harishgarg.com) for the [inspiration to create a FastAPI quickstart for Render](https://twitter.com/harishkgarg/status/1435084018677010434) and for some sample code!
+## Running the API
+
+Start the FastAPI server with:
+
+```sh
+uvicorn main:app --reload
+```
+
+## API Endpoints
+
+### Root Endpoint
+**GET /**
+
+Returns a simple JSON response:
+
+```json
+{
+  "ocrai": "v1"
+}
+```
+
+### Upload and Process File
+**POST /upload-file/**
+
+#### Request:
+- **file** (image file, required): The image containing receipt text.
+
+#### Response:
+- Extracted and structured receipt data.
+
+#### Example Request (cURL):
+```sh
+curl -X 'POST' \
+  'http://127.0.0.1:8000/upload-file/' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'file=@receipt.jpg'
+```
+
+#### Example Response:
+```json
+{
+  "filename": "receipt.jpg",
+  "analysis": {
+    "store_name": "Sample Store",
+    "date": "2024-02-06T15:30:00",
+    "items": [
+      { "item": "Milk", "price": 2.99 },
+      { "item": "Bread", "price": 1.49 }
+    ],
+    "subtotal": 4.48,
+    "tax": 0.52,
+    "total": 5.00,
+    "payment_method": "Credit Card"
+  },
+  "token_usage": 120
+}
+```
+
+## Notes
+- The API processes only image files.
+- Ensure OpenAI API access to use GPT functions.
+
+## License
+This project is open-source and available for use and modification.
+
+---
+
+Enjoy using FastAPI for OCR and structured receipt extraction!
